@@ -1,0 +1,113 @@
+import pandas as pd
+import numpy as np
+import yfinance as yf
+import matplotlib.pyplot as plt
+
+plt.style.use('fivethirtyeight')
+
+def Supertrend(df, atr_period=30, multiplier=8):
+    high, low, close = df['High'], df['Low'], df['Adj Close']
+
+    true_range = pd.concat([high - low, high - close.shift(), close.shift() - low], axis=1).abs().max(axis=1)
+    average_true_range = true_range.ewm(alpha=1/atr_period, min_periods=atr_period).mean()
+    df['ATR'] = average_true_range
+
+    hl2 = (high + low) / 2
+    upper_band = hl2 + (multiplier * average_true_range)
+    lower_band = hl2 - (multiplier * average_true_range)
+
+    supertrend = pd.Series(True, index=df.index)
+
+    for i in range(1, len(df.index)):
+        if close.iloc[i] > upper_band.iloc[i-1]:
+            supertrend.iloc[i] = True
+
+        elif close.iloc[i] < lower_band.iloc[i-1]:
+            supertrend.iloc[i] = False
+
+        else:
+            supertrend.iloc[i] = supertrend.iloc[i-1]
+
+            if supertrend.iloc[i] and lower_band.iloc[i] < lower_band.iloc[i-1]:
+                lower_band.iloc[i] = lower_band.iloc[i-1]
+            if not supertrend.iloc[i] and upper_band.iloc[i] > upper_band.iloc[i-1]:
+                upper_band.iloc[i] = upper_band.iloc[i-1]
+
+        upper_band.iloc[i] = np.nan if supertrend.iloc[i] else upper_band.iloc[i]
+        lower_band.iloc[i] = np.nan if not supertrend.iloc[i] else lower_band.iloc[i]
+
+    result_df = pd.DataFrame({'Supertrend': supertrend, 'Lowerband': lower_band, 'Upperband': upper_band}, index=df.index)
+    return result_df
+
+def backtest_supertrend_with_dca_fixed_amount(df, initial_investment=10000, trading_commission=0, dca_amount=1000, max_dca_count=10, dca_drop_percentage_on_long=5, dca_drop_percentage_on_short=10, excel_file_path='backtest_results.xlsx'):
+    is_uptrend = df['Supertrend']
+    close = df['Adj Close']
+
+    position = False
+    total_equity = initial_investment
+    shares = 0
+    first_buy_price = 0
+    dca_budget = dca_amount * max_dca_count
+
+    transactions = []
+
+    for i in range(2, len(df)):
+        if not position and is_uptrend.iloc[i]:
+            shares_to_buy = min(total_equity / close.iloc[i], initial_investment / close.iloc[i])
+            shares += shares_to_buy
+            total_equity -= shares_to_buy * close.iloc[i]
+            transactions.append({'Action': 'Buy', 'Shares': shares_to_buy, 'Price': close.iloc[i], 'Date': df.index[i]})
+            position = True
+            first_buy_price = close.iloc[i]
+
+        elif position and not is_uptrend.iloc[i]:
+            shares_to_sell = min(shares, shares_to_buy)
+            total_equity += shares_to_sell * close.iloc[i] - trading_commission
+            transactions.append({'Action': 'Sell', 'Shares': shares_to_sell, 'Price': close.iloc[i], 'Date': df.index[i]})
+            position = False
+
+        elif position and is_uptrend.iloc[i] and close.iloc[i] < first_buy_price * (1 - dca_drop_percentage_on_long / 100) and total_equity >= dca_amount and dca_budget >= dca_amount:
+            shares_to_buy_dca = min(dca_amount / close.iloc[i], total_equity / close.iloc[i])
+            shares += shares_to_buy_dca
+            total_equity -= shares_to_buy_dca * close.iloc[i]
+            transactions.append({'Action': 'DCA', 'Shares': shares_to_buy_dca, 'Price': close.iloc[i], 'Date': df.index[i]})
+            dca_budget -= dca_amount
+
+    total_equity += shares * close.iloc[i] - trading_commission if position else 0
+
+    earning = round(total_equity - initial_investment, 2)
+    roi = round(earning / initial_investment * 100, 1)
+
+    transactions_df = pd.DataFrame(transactions)
+
+    with pd.ExcelWriter(excel_file_path, engine='xlsxwriter') as writer:
+        transactions_df.to_excel(writer, sheet_name='Transactions', index=False)
+        df[['Adj Close', 'Lowerband', 'Upperband']].to_excel(writer, sheet_name='Supertrend Graph')
+
+    print("*" * 50)
+    print("Transaction Details:")
+    print(transactions_df.to_string(index=False))
+    print("*" * 50)
+    print(f'Total profit after investing {initial_investment}$ is {round(earning, 2)}$\nReturn on Investment (ROI): %{roi}')
+    print(f'Transaction details and Supertrend graph data exported to {excel_file_path}')
+    print("*" * 50)
+
+    return transactions_df, total_equity
+
+# Download data
+symbol = 'BTC-USD'
+df = yf.download(symbol, start='2015-07-12')
+
+# Apply Supertrend and backtest with DCA
+supertrend = Supertrend(df)
+df = df.join(supertrend)
+transactions_df, final_equity = backtest_supertrend_with_dca_fixed_amount(df, initial_investment=10000)
+
+# Plot
+plt.figure(figsize=(14, 7))
+plt.plot(df['Adj Close'], label='Close Price')
+plt.plot(df['Lowerband'], color='green', label='Lowerband')
+plt.plot(df['Upperband'], color='red', label='Upperband')
+plt.yscale('log')
+plt.legend()
+plt.show()
