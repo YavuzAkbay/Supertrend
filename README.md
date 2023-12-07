@@ -21,3 +21,6 @@ There are important variables in the code that must be changed by the investor.
 4. trading_commission=0: You can make the backtest closer to reality by entering a commission according to the commission rate of the broker you use.
 5. dca_amount=1000, max_dca_count=10: According to the Dollar Cost Average strategy, the backtest tries to reduce the average by buying as the price decreases, thus minimizing the loss. Therefore, you should enter the amount of purchase for each cost average in the dca_amount section and the maximum number of times the cost average should be made in the max_dca_count variable. The default dca_amount value can be calculated as follows: (Investor's Total Capital/2)/max_dca_count.
 7. dca_drop_percentage_on_long=5: Determines what percentage drop the cost averaging strategy should buy.
+
+You can see the chart in Tableau:
+https://public.tableau.com/views/SupertrendProject/Sheet1?:language=en-US&publish=yes&:display_count=n&:origin=viz_share_link
