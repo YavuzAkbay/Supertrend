@@ -11,13 +11,13 @@ In this project, we will place the Supertrend indicator on the price chart of a 
 6. Plotting Results: In this section, closing prices are shown with Supertrend upper and lower bands. plt.yscale('log') was used to visualize the data on a logarithmic scale.
 7. Printing Results: With the final code, transaction details and key performance metrics such as total profit and return on investment were then extracted into an Excel file.
 
-Ilk olarak soylemeliyim ki Supertrend ve DCA backtest projesi gelistirme asamasindadir dolayisiyla finansal piyasalarda yatirim indikatoru olarak kullanildiginda hicbir sekilde kazanc garantisi verilmemektedir. Bu proje daha ilk versiyondur ve strateji guncellenerek devami gelecektir. Bu bolum yazilimin nasil kullanilacagi hakkinda bilgi vermektedir.
+First of all, I must say that the Supertrend and DCA backtest project is in the development phase, therefore there is no guarantee of profit when used as an investment indicator in financial markets. This project is just the first version and the strategy will be updated and continued. This section provides information on how to use the software.
 
-Kodun icerisinde yatirimci tarafindan degistirilmesi gereken muhim degiskenler bulunmaktadir.
+There are important variables in the code that must be changed by the investor.
 
-1. symbol = 'BTC-USD' : Bu degiskeni degistirerek yatirim enstrumanini degistirebilir ve indikatoru farkli enstrumanlar uzerinde kullanabilirsiniz.
-2. def Supertrend(df, atr_period=30, multiplier=8) : Bu kod icerisindeki atr_period ve multiplier degiskenlerini degistirerek Supertrend'in istediginiz sembole uygun hale gelmesini saglayabilirsiniz.
-3. initial_investment=10000 : Bu degisken Supertrend yesile dondugunde, yani alim sinyali verdiginde ne kadarlik bir alim yapacagini belirler. (Varsayilan 10.000$)
-4. trading_commission=0 : Kullandiginiz broker'in komisyon oranina gore bir komisyon girerek backtesti daha gercege yakin hale getirebilirsiniz.
-5. dca_amount=1000, max_dca_count=10 : Dolar Maliyet Ortalama stratejisine gore backtest fiyat dustukce alim yaparak ortalamayi dusurmeye, boylece zarari en aza indirmeye calismaktadir. Dolayisiyla dca_amount kismina her maliyet ortalamada ne kadarlik bir alim yapacagini ve max_dca_count degiskenine de en fazla kac defa maliyet ortalamasi yapmasi gerektigi verisini girmelisiniz. Varsayilan dca_amount degeri su sekilde hesaplanabilir: (Yatirimcinin Toplam Sermayesi/2)/max_dca_count.
-7. dca_drop_percentage_on_long=5 : Maliyet ortalama stratejisinin % kac dususte alim yapmasi gerektigini belirler. 
+1. symbol = 'BTC-USD': By changing this variable, you can change the investment instrument and use the indicator on different instruments.
+2. def Supertrend(df, atr_period=30, multiplier=8): By changing the atr_period and multiplier variables in this code, you can make Supertrend conform to the symbol you want.
+3. initial_investment=10000: This variable determines how much money Supertrend will buy when it turns green, that is, when it gives a buying signal. (Default $10,000)
+4. trading_commission=0: You can make the backtest closer to reality by entering a commission according to the commission rate of the broker you use.
+5. dca_amount=1000, max_dca_count=10: According to the Dollar Cost Average strategy, the backtest tries to reduce the average by buying as the price decreases, thus minimizing the loss. Therefore, you should enter the amount of purchase for each cost average in the dca_amount section and the maximum number of times the cost average should be made in the max_dca_count variable. The default dca_amount value can be calculated as follows: (Investor's Total Capital/2)/max_dca_count.
+7. dca_drop_percentage_on_long=5: Determines what percentage drop the cost averaging strategy should buy.
