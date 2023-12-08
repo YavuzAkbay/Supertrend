@@ -24,3 +24,5 @@ There are important variables in the code that must be changed by the investor.
 
 You can see the chart in Tableau:
 https://public.tableau.com/views/SupertrendProject/Sheet1?:language=en-US&publish=yes&:display_count=n&:origin=viz_share_link
+
+![Sheet 1](https://github.com/YavuzAkbay/Supertrend/assets/29518499/828a8829-1d1a-4448-9ff7-668e8494965a)
